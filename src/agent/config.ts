@@ -80,7 +80,7 @@ export function interpolateEnv(text: string, env: NodeJS.ProcessEnv = process.en
   return text.replace(/\$\{([A-Z0-9_]+)(?::-([^}]*))?\}/gi, (_match, name: string, fallback?: string) => {
     const value = env[name] ?? fallback
     if (value === undefined) {
-      throw new Error(`Environment variable ${name} is not set (used in the agent config)`)
+      throw new Error(`Environment variable ${name} is not set (used in the rushdb-sync config)`)
     }
     return value
   })
@@ -121,13 +121,19 @@ export function loadAgentConfig(path: string, env: NodeJS.ProcessEnv = process.e
   return parseAgentConfig(readFileSync(path, 'utf8'), env)
 }
 
+/** Which config file to load: `--config`, then `RUSHDB_SYNC_CONFIG`, then `rushdb-sync.yaml`. */
+export function resolveConfigPath(argv: string[], env: NodeJS.ProcessEnv = process.env): string {
+  const index = argv.indexOf('--config')
+  return (index >= 0 ? argv[index + 1] : undefined) || env.RUSHDB_SYNC_CONFIG || 'rushdb-sync.yaml'
+}
+
 /** The stream's id in RushDB: `<source>.<stream>`. */
 export const streamId = (source: { name: string }, stream: { name: string }) => `${source.name}.${stream.name}`
 
-export const SAMPLE_CONFIG = `# rushdb-agent configuration. Secrets come from the environment.
+export const SAMPLE_CONFIG = `# rushdb-sync configuration. Secrets come from the environment.
 rushdb:
   url: https://api.rushdb.com
-  token: \${RUSHDB_AGENT_TOKEN}
+  token: \${RUSHDB_SYNC_TOKEN}
 
 sources:
   - name: warehouse

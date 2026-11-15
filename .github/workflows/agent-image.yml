@@ -1,7 +1,8 @@
-name: Agent image
+name: Sync image
 
-# ghcr.io/rush-db/rushdb-agent, built on native runners per architecture
-# (no emulation) when a release tag is pushed, then joined into one manifest.
+# ghcr.io/rush-db/rushdb-sync (formerly ghcr.io/rush-db/rushdb-agent, no longer
+# published), built on native runners per architecture (no emulation) when a
+# release tag is pushed, then joined into one manifest.
 on:
   push:
     tags: ['@rushdb/connectors@*']
@@ -16,7 +17,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE: ghcr.io/rush-db/rushdb-agent
+  IMAGE: ghcr.io/rush-db/rushdb-sync
 
 jobs:
   build:
