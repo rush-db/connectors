@@ -181,7 +181,7 @@ a RushDB webhook (push) connection.
 
 ### Logos
 
-Every connector, push template and agent database has its official logo in
+Every connector, push template and on-prem database has its official logo in
 `logos/` (sources in `logos/SOURCES.md`). Catalog entries and push templates
 carry it as `logo`, a `data:image/svg+xml` URI for an `<img src>`;
 `connectorLogo(id)` returns the SVG markup.
@@ -205,17 +205,25 @@ Hashed fields become a keyed SHA-256: the same value hashed with the same key
 (one per RushDB project) is equal, so records still join across sources, but
 the value can't be read back.
 
-## On-prem databases: `rushdb-agent`
+## On-prem databases: `rushdb-sync`
 
-`rushdb-agent` (this package's binary, also a Docker image) syncs PostgreSQL,
-MySQL, MongoDB and ClickHouse from inside your network: outbound HTTPS only,
-read-only sessions, columns you list, and the field doctrine applied before
-anything leaves. See [docs/agent.md](docs/agent.md).
+`rushdb-sync` (this package's binary, also a Docker image,
+`ghcr.io/rush-db/rushdb-sync`) syncs PostgreSQL, MySQL, MongoDB and ClickHouse
+from inside your network: outbound HTTPS only, read-only sessions, columns you
+list, and the field doctrine applied before anything leaves. See
+[docs/sync.md](docs/sync.md).
 
 ```bash
-npx -p @rushdb/connectors rushdb-agent init > rushdb-agent.yaml
-npx -p @rushdb/connectors rushdb-agent check
+npx -p @rushdb/connectors rushdb-sync init > rushdb-sync.yaml
+npx -p @rushdb/connectors rushdb-sync check
 ```
+
+### Renamed from `rushdb-agent`
+
+In 0.2.0 the command, the Docker image (`ghcr.io/rush-db/rushdb-sync`), the
+config file (`rushdb-sync.yaml`) and `RUSHDB_SYNC_CONFIG` were renamed; the old
+names no longer work. See the
+[upgrade steps](docs/sync.md#renamed-from-rushdb-agent).
 
 ## Contributing
 

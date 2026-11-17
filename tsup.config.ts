@@ -10,8 +10,8 @@ export default defineConfig([
     target: 'node18'
   },
   {
-    // The on-prem agent's command (`rushdb-agent`).
-    entry: { 'rushdb-agent': 'src/agent/cli.ts' },
+    // The on-prem sync command (`rushdb-sync`).
+    entry: { 'rushdb-sync': 'src/agent/cli.ts' },
     format: ['cjs'],
     banner: { js: '#!/usr/bin/env node' },
     sourcemap: true,

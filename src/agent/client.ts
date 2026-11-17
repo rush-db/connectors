@@ -1,5 +1,6 @@
 import type { FieldPolicy, FieldProfile } from '../pii'
 import type { MappedRecord } from '../types'
+import { AGENT_VERSION } from './version'
 
 export const AGENT_TOKEN_HEADER = 'x-rushdb-agent-token'
 
@@ -50,7 +51,7 @@ export class AgentClient {
       try {
         response = await fetchImpl(url, {
           method,
-          headers: { 'Content-Type': 'application/json', [AGENT_TOKEN_HEADER]: this.token, 'User-Agent': 'rushdb-agent' },
+          headers: { 'Content-Type': 'application/json', [AGENT_TOKEN_HEADER]: this.token, 'User-Agent': `rushdb-sync/${AGENT_VERSION}` },
           body: body === undefined ? undefined : JSON.stringify(body),
           redirect: 'error'
         })

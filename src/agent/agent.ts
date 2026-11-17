@@ -8,9 +8,11 @@ import { AgentApiError, type AgentClient, type AgentDescription, type RemoteStre
 import { streamId, type AgentConfig, type AgentSourceConfig, type AgentStreamConfig } from './config'
 import { createDriver, type Position, type Row, type SourceDriver } from './drivers'
 
+import { AGENT_VERSION } from './version'
+
 import type { MappedRecord } from '../types'
 
-export const AGENT_VERSION = '0.1.0'
+export { AGENT_VERSION }
 
 /** Database values as JSON the graph can type: dates as ISO, big numbers safely, ids as strings. */
 export function normalizeValue(value: unknown): unknown {
@@ -87,7 +89,7 @@ export class RushDBAgent {
   private readonly log: (message: string) => void
 
   constructor(private readonly options: Options) {
-    this.log = options.log ?? ((message) => console.log(`[rushdb-agent] ${message}`))
+    this.log = options.log ?? ((message) => console.log(`[rushdb-sync] ${message}`))
   }
 
   private get config() {

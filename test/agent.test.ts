@@ -1,6 +1,10 @@
+import { execFileSync } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
+
 import { describe, expect, it } from 'vitest'
 
-import { AgentClient, interpolateEnv, normalizeValue, pageQuery, parseAgentConfig, RushDBAgent } from '../src/agent'
+import { AGENT_VERSION, AgentClient, interpolateEnv, normalizeValue, pageQuery, parseAgentConfig, RushDBAgent, SAMPLE_CONFIG } from '../src/agent'
+import { resolveConfigPath } from '../src/agent/config'
 import { hashPiiValue } from '../src/pii'
 import { createMockFetch, noSleep } from '../src/testing'
 
@@ -107,6 +111,34 @@ function fakeDriver(tables: Record<string, Row[]>): SourceDriver {
   }
 }
 
+describe('rushdb-sync names', () => {
+  it('resolves the config path: --config, then RUSHDB_SYNC_CONFIG, then rushdb-sync.yaml', () => {
+    const env = { RUSHDB_SYNC_CONFIG: '/etc/rushdb-sync.yaml' }
+    expect(resolveConfigPath(['run', '--config', 'mine.yaml'], env)).toBe('mine.yaml')
+    expect(resolveConfigPath(['run'], env)).toBe('/etc/rushdb-sync.yaml')
+    expect(resolveConfigPath(['run'], {})).toBe('rushdb-sync.yaml')
+    // The names from before the rename are not read.
+    expect(resolveConfigPath(['run'], { RUSHDB_AGENT_CONFIG: '/etc/rushdb-agent.yaml' })).toBe('rushdb-sync.yaml')
+  })
+
+  it('parses the sample config', () => {
+    expect(SAMPLE_CONFIG).toContain('${RUSHDB_SYNC_TOKEN}')
+    const env = { CLICKHOUSE_URL: 'https://reader@clickhouse.internal:8443', RUSHDB_SYNC_TOKEN: 'rag_x_secretsecretsecretsecret' }
+    expect(parseAgentConfig(SAMPLE_CONFIG, env).rushdb.token).toBe('rag_x_secretsecretsecretsecret')
+  })
+
+  it('reports the package version', () => {
+    expect(AGENT_VERSION).toBe(JSON.parse(readFileSync('package.json', 'utf8')).version)
+  })
+
+  it.skipIf(!existsSync('dist/rushdb-sync.cjs'))('ships only the rushdb-sync command', () => {
+    expect(JSON.parse(readFileSync('package.json', 'utf8')).bin).toEqual({ 'rushdb-sync': 'dist/rushdb-sync.cjs' })
+    expect(readFileSync('dist/rushdb-sync.cjs', 'utf8').startsWith('#!/usr/bin/env node')).toBe(true)
+    expect(execFileSync('node', ['dist/rushdb-sync.cjs', 'init'], { encoding: 'utf8' })).toBe(SAMPLE_CONFIG)
+    expect(execFileSync('node', ['dist/rushdb-sync.cjs', '--help'], { encoding: 'utf8' })).toMatch(/^rushdb-sync \d[^\n]*\n\nUsage: rushdb-sync /)
+  })
+})
+
 describe('agent cycle', () => {
   const accounts = Array.from({ length: 15 }, (_, index) => ({
     account_id: `a${String(index).padStart(2, '0')}`,
@@ -173,6 +205,7 @@ describe('agent cycle', () => {
     expect(accountBatches[0].records[0].properties).toMatchObject({ name: 'Account 0', plan: 'free', external_id: 'a00' })
     // The token goes in its own header, never Authorization.
     expect(fetch.calls[0].headers['x-rushdb-agent-token']).toBe('rag_x_secretsecretsecretsecret')
+    expect(fetch.calls[0].headers['user-agent']).toBe(`rushdb-sync/${AGENT_VERSION}`)
     expect(fetch.calls[0].headers.authorization).toBeUndefined()
   })
 

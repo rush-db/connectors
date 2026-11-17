@@ -1,7 +1,7 @@
-# rushdb-agent: syncs databases on your network into RushDB, outbound HTTPS only.
-#   docker build -t rushdb-agent .
-#   docker run --read-only --cap-drop ALL -e RUSHDB_AGENT_TOKEN=… -e PG_URL=… \
-#     -v $PWD/rushdb-agent.yaml:/etc/rushdb-agent.yaml:ro rushdb-agent run
+# rushdb-sync: syncs databases on your network into RushDB, outbound HTTPS only.
+#   docker build -t rushdb-sync .
+#   docker run --read-only --cap-drop ALL -e RUSHDB_SYNC_TOKEN=… -e PG_URL=… \
+#     -v $PWD/rushdb-sync.yaml:/etc/rushdb-sync.yaml:ro rushdb-sync run
 FROM node:22-alpine AS build
 WORKDIR /src
 RUN corepack enable
@@ -12,14 +12,14 @@ COPY src ./src
 RUN pnpm build
 
 FROM node:22-alpine
-ENV NODE_ENV=production RUSHDB_AGENT_CONFIG=/etc/rushdb-agent.yaml
+ENV NODE_ENV=production RUSHDB_SYNC_CONFIG=/etc/rushdb-sync.yaml
 WORKDIR /app
-# Every database driver the agent supports; pinned majors, no install scripts at runtime.
+# Every database driver rushdb-sync supports; pinned majors, no install scripts at runtime.
 RUN npm install --omit=dev --no-audit --no-fund --ignore-scripts \
       yaml@2 zod@3 pg@8 mysql2@3 mongodb@6 @clickhouse/client@1 \
  && npm cache clean --force
 COPY --from=build /src/dist ./dist
 COPY LICENSE ./
 USER node
-ENTRYPOINT ["node", "/app/dist/rushdb-agent.cjs"]
+ENTRYPOINT ["node", "/app/dist/rushdb-sync.cjs"]
 CMD ["run"]

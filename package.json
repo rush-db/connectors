@@ -1,7 +1,7 @@
 {
   "name": "@rushdb/connectors",
   "version": "0.1.1",
-  "description": "Connectors for RushDB: the spec format, an HTTP runtime, the built-in catalog of SaaS connectors, field doctrine (PII) tooling and rushdb-agent, the on-prem database agent.",
+  "description": "Connectors for RushDB: the spec format, an HTTP runtime, the built-in catalog of SaaS connectors, field doctrine (PII) tooling and rushdb-sync, the on-prem database sync.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -88,7 +88,7 @@
     "vitest": "^3.2.4"
   },
   "bin": {
-    "rushdb-agent": "dist/rushdb-agent.cjs"
+    "rushdb-sync": "dist/rushdb-sync.cjs"
   },
   "peerDependencies": {
     "pg": ">=8",

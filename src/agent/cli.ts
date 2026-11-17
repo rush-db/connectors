@@ -2,11 +2,11 @@ import { mapRecord } from '../runtime/mapper'
 import { applyFieldPolicy, AUTO_POLICY, profileFields } from '../pii'
 import { RushDBAgent, AGENT_VERSION, normalizeValue, streamSpecOf } from './agent'
 import { AgentClient } from './client'
-import { loadAgentConfig, SAMPLE_CONFIG, streamId } from './config'
+import { loadAgentConfig, resolveConfigPath, SAMPLE_CONFIG, streamId } from './config'
 
-const HELP = `rushdb-agent ${AGENT_VERSION}: syncs databases on your network into RushDB, outbound only.
+const HELP = `rushdb-sync ${AGENT_VERSION}: syncs databases on your network into RushDB, outbound only.
 
-Usage: rushdb-agent <command> [--config rushdb-agent.yaml]
+Usage: rushdb-sync <command> [--config rushdb-sync.yaml]
 
 Commands:
   init       print a sample configuration
@@ -16,11 +16,6 @@ Commands:
   once       run one sync cycle and exit
   run        keep syncing (the interval is set in RushDB; "Sync now" is picked up within pollSeconds)
 `
-
-function argValue(args: string[], name: string): string | undefined {
-  const index = args.indexOf(name)
-  return index >= 0 ? args[index + 1] : undefined
-}
 
 export async function main(argv = process.argv.slice(2)): Promise<number> {
   const [command] = argv
@@ -32,7 +27,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     process.stdout.write(SAMPLE_CONFIG)
     return 0
   }
-  const config = loadAgentConfig(argValue(argv, '--config') ?? process.env.RUSHDB_AGENT_CONFIG ?? 'rushdb-agent.yaml')
+  const config = loadAgentConfig(resolveConfigPath(argv))
   const client = new AgentClient(config.rushdb.url, config.rushdb.token)
   const controller = new AbortController()
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {
@@ -100,11 +95,11 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
 }
 
 const isMain = typeof require !== 'undefined' && require.main === module
-if (isMain || process.argv[1]?.endsWith('rushdb-agent') || process.argv[1]?.endsWith('cli.js') || process.argv[1]?.endsWith('cli.cjs')) {
+if (isMain || process.argv[1]?.endsWith('rushdb-sync') || process.argv[1]?.endsWith('cli.js') || process.argv[1]?.endsWith('cli.cjs')) {
   main().then(
     (code) => process.exit(code),
     (error) => {
-      process.stderr.write(`rushdb-agent: ${(error as Error).message}\n`)
+      process.stderr.write(`rushdb-sync: ${(error as Error).message}\n`)
       process.exit(1)
     }
   )
